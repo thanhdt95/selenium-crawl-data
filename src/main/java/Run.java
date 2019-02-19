@@ -164,7 +164,7 @@ public class Run {
     WebDriver driver = new ChromeDriver(options);
 
     driver.get(
-        "https://www.lazada.vn/dien-thoai-di-dong/?spm=a2o4n.home.cate_1.1.1905e1827V8eOx");
+        "https://www.lazada.vn/may-tinh-bang/?spm=a2o4n.searchlistcategory.cate_1.2.325a7dd1YXsTln");
     WebElement rootDiv = driver.findElement(By.id("root"));
 
     List<WebElement> listItem = rootDiv.findElements(By.className("c5TXIP"));
@@ -181,7 +181,7 @@ public class Run {
       try {
 
         for (int i = 0; i < listItem.size(); i++) {
-          String a = "INSERT INTO product (id, name, unit_price, discount_percent) values ";
+          String a = "INSERT INTO product (id, name, unit_price, discount_percent, img_url, category_id) values ";
           List<WebElement> listText = listItem.get(i)
               .findElements(By.className("c3KeDq"));
           for (WebElement x : listText) {
@@ -190,13 +190,12 @@ public class Run {
             WebElement percent = x.findElement(By.className("c3lr34"))
                 .findElement(By.className("c1hkC1"));
 
-            a += "('" + nameElm.getText() + "', '" + priceElm.getText().replace(" ₫", "") + "', '" + percent.getText().replace("%", "") + "', '";
+            a += "( 14" + i + ", '" + nameElm.getText() + "', " + priceElm.getText().replace(" ₫", "").replace(".", "") + ", " + percent.getText().replace("%", "").replace("-", "") + ", '";
           }
-          a+= listImages.get(i).getAttribute("src") + "');" + "\r\n\r\n";
+          a+= listImages.get(i).getAttribute("src") + "', 14);" + "\r\n\r\n";
           bw.write(a);
         }
       } catch (Exception e) {
-        bw.close();
       }
 
       System.out.println("Done");

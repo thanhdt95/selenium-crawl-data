@@ -10,6 +10,7 @@
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.openqa.selenium.By;
@@ -155,49 +156,62 @@ public class Run {
 
   public static void main(String args[]) throws Exception {
 
+    ArrayList<Product> productArrayList = new ArrayList<Product>();
+
     System.setProperty("webdriver.chrome.driver",
         "C:\\Users\\thanhdt\\project\\crawl-data\\chromedriver.exe");
-
     ChromeOptions options = new ChromeOptions();
+    options.addArguments("start-maximized");
     options.addArguments("headless");
-    options.addArguments("window-size=1920x10000");
+    options.addArguments("--disable-extensions");
     WebDriver driver = new ChromeDriver(options);
 
     driver.get(
-        "https://www.lazada.vn/may-tinh-bang/?spm=a2o4n.searchlistcategory.cate_1.2.325a7dd1YXsTln");
+        "https://www.lazada.vn/playstation-console/?spm=a2o4n.home.cate_1_6.1.1905e182z6ePRa");
+
     WebElement rootDiv = driver.findElement(By.id("root"));
 
     List<WebElement> listItem = rootDiv.findElements(By.className("c5TXIP"));
 
-    List<WebElement> listImages = rootDiv.findElements(By.xpath(
-        "//*[@class='c5TXIP']//*[@class='c2iYAv']//*[@class='cRjKsc']//img[@type='product']"));
+    List<WebElement> listLink = rootDiv.findElements(By.xpath(
+        "//*[@class='c5TXIP']//*[@class='c2iYAv']//*[@class='cRjKsc']//a"));
 
+    for (int i = 0; i < listItem.size(); i++) {
+      Product product = new Product();
+      product.setCategoryId(257);
+      product.setId(Integer.valueOf(product.getCategoryId() + "" + i));
+      List<WebElement> listText = listItem.get(i)
+          .findElements(By.className("c3KeDq"));
+      for (WebElement x : listText) {
+        WebElement nameElm = x.findElement(By.className("c16H9d"));
+        WebElement priceElm = x.findElement(By.className("c3gUW0"));
+        WebElement percent = x.findElement(By.className("c3lr34"))
+            .findElement(By.xpath("//span[@class='c1hkC1']"));
+        product.setNameProduct(nameElm.getText());
+        product.setPercent(percent.getText());
+        product.setPrice(priceElm.getText());
+      }
+      String link = listLink.get(i).getAttribute("href");
+      try{
+        ProductDetail detail = new ProductDetail(link);
+        product.setProductDetail(detail);
+        productArrayList.add(product);
+      }catch(Exception e){
+
+      }
+    }
+
+    /*write file*/
     BufferedWriter bw = null;
     FileWriter fw = null;
+
     try {
-      fw = new FileWriter("C:\\Users\\thanhdt\\Desktop\\test.txt");
+      String content = "This is the content to write into file\n";
+      fw = new FileWriter("C:\\Users\\thanhdt\\Desktop\\fullData.txt");
       bw = new BufferedWriter(fw);
-
-      try {
-
-        for (int i = 0; i < listItem.size(); i++) {
-          String a = "INSERT INTO product (id, name, unit_price, discount_percent, img_url, category_id) values ";
-          List<WebElement> listText = listItem.get(i)
-              .findElements(By.className("c3KeDq"));
-          for (WebElement x : listText) {
-            WebElement nameElm = x.findElement(By.className("c16H9d"));
-            WebElement priceElm = x.findElement(By.className("c3gUW0"));
-            WebElement percent = x.findElement(By.className("c3lr34"))
-                .findElement(By.className("c1hkC1"));
-
-            a += "( 14" + i + ", '" + nameElm.getText() + "', " + priceElm.getText().replace(" ₫", "").replace(".", "") + ", " + percent.getText().replace("%", "").replace("-", "") + ", '";
-          }
-          a+= listImages.get(i).getAttribute("src") + "', 14);" + "\r\n\r\n";
-          bw.write(a);
-        }
-      } catch (Exception e) {
+      for (Product product : productArrayList) {
+        bw.write(product.generateSQL());
       }
-
       System.out.println("Done");
     } catch (IOException e) {
       e.printStackTrace();
@@ -211,6 +225,6 @@ public class Run {
         ex.printStackTrace();
       }
     }
-
+    System.out.println("Done");
   }
 }

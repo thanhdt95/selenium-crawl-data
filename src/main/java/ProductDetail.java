@@ -1,153 +1,15 @@
-/*
- * Copyright (c) 2018 Azeus Systems Holdings Limited. All rights reserved.
- *
- * This software is the confidential and proprietary information of Azeus
- * Systems Holdings, Ltd. ("Confidential Information"). You shall not disclose
- * such Confidential Information and shall use it only in accordance with the
- * terms of the license agreement you entered into with Azeus.
- */
+package com.higgsup.crawler;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
-/**
- * <b>Program ID</b>: NA <br>
- * <br>
- *
- * <b>Mode</b>: <!-- Online/Batch/Library (Library by default) --> Library <br>
- * <br>
- *
- * <b>Program Name</b>: NA <br>
- * <br>
- *
- * <b>Description</b>: Class/Interface/Enum description here
- * <br>
- * <br>
- *
- * <b>Programming Environment</b>:
- *
- * <table cellspacing="0" cellpadding="0" class="PCMS2">
- * <tr class="header">
- * <td>Related Source</td>
- * <td>Compiler</td>
- * </tr>
- * <p>
- * <!-- Programming Environment Entries -->
- *
- * <tr>
- * <td>NA</td>
- * <td>NA</td>
- * </tr>
- * </table>
- *
- * <br>
- *
- * <b>File Usage</b>: <br>
- * <p>
- * File usage here
- *
- * <pre>
- *   Enclose sample code usage in &lt;pre&gt; tags
- * </pre>
- *
- * <b>Input Parameters</b>:
- *
- * <table cellspacing="0" cellpadding="0" class="PCMS2">
- * <tr class="header">
- * <td>Parameter</td>
- * <td>Type</td>
- * <td>Format</td>
- * <td>Mandatory</td>
- * <td>Description</td>
- * </tr>
- * <p>
- * <!-- Input Parameter Entries -->
- *
- * <tr>
- * <td>NA</td>
- * <td>NA</td>
- * <td>NA</td>
- * <td>NA</td>
- * <td>NA</td>
- * </tr>
- * </table>
- *
- * <br>
- *
- * <b>Screens Used</b>: NA <br>
- * <br>
- *
- * <b>Processing Logic</b>: <br>
- * <p>
- * Place processing logic here.
- *
- * <br>
- * <br>
- *
- * <b>External References</b>:
- *
- * <table cellspacing="0" cellpadding="0" class="PCMS2">
- * <tr class="header">
- * <td>Reference</td>
- * <td>Description</td>
- * </tr>
- * <p>
- * <!-- External References Entries -->
- * <tr>
- * <td>NA</td>
- * <td>NA</td>
- * </tr>
- * </table>
- *
- * <br>
- *
- * <b>Program Limits</b>: NA <br>
- *
- * <ul>
- * <!-- List Program Limits here using
- * <li></li>
- * tags -->
- * </ul>
- *
- * <br>
- *
- * <b>Unit Test Record</b>: NA <br>
- * <br>
- *
- * <b>Amendment History</b>:
- *
- * <table cellspacing="0" cellpadding="0" class="PCMS2">
- * <tr class="header">
- * <td>Reference No.</td>
- * <td>Date (MMM-DD-YYYY)</td>
- * <td>Author</td>
- * <td>Description</td>
- * </tr>
- * <p>
- * <!-- Amendment History Entries -->
- *
- * <tr>
- * <td>&nbsp;</td>
- * <td></td>
- * <td></td>
- * <td></td>
- * </tr>
- * </table>
- *
- * <br>
- *
- * <b>File Created</b>: Feb 19, 2019
- *
- * <br>
- * <br>
- *
- * <b>Author</b>: quytm
- */
 public class ProductDetail {
 
   private WebDriver driver;
@@ -162,19 +24,19 @@ public class ProductDetail {
 
   private String productDescription;
 
-  private ArrayList<String> reviewComments = new ArrayList<String>();
+  private ArrayList<HashMap<String, String>> reviewComments = new ArrayList();
 
   private Double ratingPoint;
+
+  private int totalRating;
 
   public ProductDetail(String link) {
 
     ChromeOptions options = new ChromeOptions();
-    String proxy = "118.172.211.37:41780";
-    options.addArguments("--proxy-server=http://" + proxy);
-    options.addArguments("start-maximized");
-    options.addArguments("headless");
-    options.addArguments("--disable-extensions");
-
+    options.addArguments(ApplicationProperties.PROXY_SETTING)
+        .addArguments(ApplicationProperties.DRIVER_SCREEN_SIZE)
+        .addArguments(ApplicationProperties.DRIVER_HEADLESS)
+        .addArguments(ApplicationProperties.DRIVER_DISABLE_EXTENSION);
     this.driver = new ChromeDriver(options);
     try {
       this.driver.get(link);
@@ -188,6 +50,7 @@ public class ProductDetail {
     this.setReviewComments(this.rootDiv);
     this.setProductDescription(this.rootDiv);
     this.setRatingPoint(this.rootDiv);
+    this.setTotalRating(this.rootDiv);
 
     this.driver.close();
     this.driver.quit();
@@ -233,16 +96,28 @@ public class ProductDetail {
     this.productDescription = detail.getText();
   }
 
-  public ArrayList<String> getReviewComments() {
+  public ArrayList<HashMap<String, String>> getReviewComments() {
     return reviewComments;
   }
 
   public void setReviewComments(WebElement rootDiv) {
-    this.reviewComments = new ArrayList<String>();
-    List<WebElement> reviewCommnent = rootDiv.findElements(
-        By.xpath("//div[@class='mod-reviews']//*[@class='item']"));
-    for (WebElement x : reviewCommnent) {
-      this.reviewComments.add(x.getText());
+    this.reviewComments = new ArrayList<HashMap<String, String>>();
+    List<WebElement> reviewers = rootDiv.findElements(
+        By.xpath(
+            "//div[@class='mod-reviews']//*[@class='item']//div[@class='middle']"));
+    List<WebElement> comments = rootDiv.findElements(
+        By.xpath(
+            "//div[@class='mod-reviews']//*[@class='item']//div[@class='item-content']//div[@class='content']"));
+
+    for (int i = 0; i < reviewers.size(); i++) {
+      HashMap<String, String> temp = new HashMap();
+      String user = reviewers.get(i).getText().replace("bởi ", "")
+          .replace("Chứng nhận đã mua hàng", "");
+      String comment = comments.get(i).getText();
+
+      temp.put("user", user);
+      temp.put("comment", comment);
+      this.reviewComments.add(temp);
     }
   }
 
@@ -254,6 +129,17 @@ public class ProductDetail {
     WebElement rating = rootDiv.findElement(By.xpath(
         "//div[@id='module_product_review']//div[@class='score']//span[@class='score-average']"));
     this.ratingPoint = Double.valueOf(rating.getText());
+  }
+
+  public int getTotalRating() {
+    return this.totalRating;
+  }
+
+  public void setTotalRating(WebElement rootDiv) {
+    WebElement totalRatingTmp = rootDiv.findElement(By.xpath(
+        "//div[@id='module_product_review']//div[@class='count']"));
+    this.totalRating = Integer
+        .parseInt(totalRatingTmp.getText().replace(" đánh giá", ""));
   }
 
   //  public static void main(String args[]) throws Exception {
@@ -269,10 +155,10 @@ public class ProductDetail {
   //    options.addArguments("--disable-extensions");
   //    options.addArguments("--proxy-server=http://" + proxy);
   //    WebDriver driver = new ChromeDriver(options);
-
-  //    ProductDetail detail = new ProductDetail(driver,
-  //        "https://www.lazada.vn/products/xiaomi-redmi-5-32gb-ram-3gb-den-hang-phan-phoi-chinh-thuc-i161183555-s174988855.html?spm=a2o4n.searchlistcategory.list.1.138c2590AnudrG&search=1");
-  //    System.out.println(detail.getProductDescription());
-
+  //
+  //    ProductDetail detail = new ProductDetail(
+  //        "https://www.lazada.vn/products/doc-va-la-dien-thoai-mini-x8-dien-thoai-mini-sieu-nho-v8-dien-thoai-2-sim-dien-thoai-hoc-sinh-goodshop4u-i258425109-s358408526.html?spm=a2o4n.searchlistcategory.list.20.29432590QDZCAn&search=1");
+  //    System.out.println(detail.getReviewComments());
+  //
   //  }
 }

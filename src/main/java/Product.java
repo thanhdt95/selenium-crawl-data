@@ -1,147 +1,7 @@
-/*
- * Copyright (c) 2018 Azeus Systems Holdings Limited. All rights reserved.
- *
- * This software is the confidential and proprietary information of Azeus
- * Systems Holdings, Ltd. ("Confidential Information"). You shall not disclose
- * such Confidential Information and shall use it only in accordance with the
- * terms of the license agreement you entered into with Azeus.
- */
+package com.higgsup.crawler;
 
 import java.util.Random;
 
-/**
- * <b>Program ID</b>: NA <br>
- * <br>
- *
- * <b>Mode</b>: <!-- Online/Batch/Library (Library by default) --> Library <br>
- * <br>
- *
- * <b>Program Name</b>: NA <br>
- * <br>
- *
- * <b>Description</b>: Class/Interface/Enum description here
- * <br>
- * <br>
- *
- * <b>Programming Environment</b>:
- *
- * <table cellspacing="0" cellpadding="0" class="PCMS2">
- * <tr class="header">
- * <td>Related Source</td>
- * <td>Compiler</td>
- * </tr>
- * <p>
- * <!-- Programming Environment Entries -->
- *
- * <tr>
- * <td>NA</td>
- * <td>NA</td>
- * </tr>
- * </table>
- *
- * <br>
- *
- * <b>File Usage</b>: <br>
- * <p>
- * File usage here
- *
- * <pre>
- *   Enclose sample code usage in &lt;pre&gt; tags
- * </pre>
- *
- * <b>Input Parameters</b>:
- *
- * <table cellspacing="0" cellpadding="0" class="PCMS2">
- * <tr class="header">
- * <td>Parameter</td>
- * <td>Type</td>
- * <td>Format</td>
- * <td>Mandatory</td>
- * <td>Description</td>
- * </tr>
- * <p>
- * <!-- Input Parameter Entries -->
- *
- * <tr>
- * <td>NA</td>
- * <td>NA</td>
- * <td>NA</td>
- * <td>NA</td>
- * <td>NA</td>
- * </tr>
- * </table>
- *
- * <br>
- *
- * <b>Screens Used</b>: NA <br>
- * <br>
- *
- * <b>Processing Logic</b>: <br>
- * <p>
- * Place processing logic here.
- *
- * <br>
- * <br>
- *
- * <b>External References</b>:
- *
- * <table cellspacing="0" cellpadding="0" class="PCMS2">
- * <tr class="header">
- * <td>Reference</td>
- * <td>Description</td>
- * </tr>
- * <p>
- * <!-- External References Entries -->
- * <tr>
- * <td>NA</td>
- * <td>NA</td>
- * </tr>
- * </table>
- *
- * <br>
- *
- * <b>Program Limits</b>: NA <br>
- *
- * <ul>
- * <!-- List Program Limits here using
- * <li></li>
- * tags -->
- * </ul>
- *
- * <br>
- *
- * <b>Unit Test Record</b>: NA <br>
- * <br>
- *
- * <b>Amendment History</b>:
- *
- * <table cellspacing="0" cellpadding="0" class="PCMS2">
- * <tr class="header">
- * <td>Reference No.</td>
- * <td>Date (MMM-DD-YYYY)</td>
- * <td>Author</td>
- * <td>Description</td>
- * </tr>
- * <p>
- * <!-- Amendment History Entries -->
- *
- * <tr>
- * <td>&nbsp;</td>
- * <td></td>
- * <td></td>
- * <td></td>
- * </tr>
- * </table>
- *
- * <br>
- *
- * <b>File Created</b>: Feb 20, 2019
- *
- * <br>
- * <br>
- *
- * <b>Author</b>: quytm
- */
 public class Product {
 
   private int id;
@@ -160,11 +20,14 @@ public class Product {
 
   private ProductDetail productDetail;
 
+  String arrayStatus[] = { "NEW", "USED" };
+
   public Product(String nameProduct, String price, String percent,
-      ProductDetail productDetail) {
+      String status, ProductDetail productDetail) {
     this.nameProduct = nameProduct;
     this.price = price;
     this.percent = percent;
+    this.status = status;
     this.productDetail = productDetail;
   }
 
@@ -225,7 +88,8 @@ public class Product {
   }
 
   public String getStatus() {
-    return status;
+    int rnd = new Random().nextInt(this.arrayStatus.length);
+    return this.arrayStatus[rnd];
   }
 
   public double getWeight() {
@@ -235,21 +99,23 @@ public class Product {
 
   public String generateSQL() {
     String sql =
-        "INSERT INTO product (id, name, full_desc, category_id, brand_name, status, weight, available_item, unit_price, discount_percent, avg_rating, img_url) VALUES"
+        "INSERT INTO product (id, name, short_desc, full_desc, category_id, brand_name, status, weight, available_item, unit_price, discount_percent, avg_rating, img_url, total_rating) VALUES"
             + "("
             + this.getId() + ", "
             + "'" + this.getNameProduct() + "'" + ", "
-            + "'" + this.getProductDetail().getProductDescription() + "'" + ", "
+            + "'" + this.getNameProduct() + "'" + ", "
+            + "'" + this.getProductDetail().getProductDescription() + "', "
             + this.getCategoryId() + ", "
-            + "'" + this.getProductDetail().getBrandName() + "'" + ", "
-            + "'" + this.getStatus() + "'" + ", "
-            + this.getWeight() + ", "
+            + "'" + this.getProductDetail().getBrandName() + "', "
+            + "'" + this.getStatus() + "', " +
+            +this.getWeight() + ", "
             + this.getAmount() + ", "
             + this.getPrice() + ", "
             + this.getPercent() + ", "
             + this.getProductDetail().getRatingPoint() + ", "
-            + "'" + this.getProductDetail().getListThumbnail() + "'"
-            + ");" + "\r\n";
+            + "'" + this.getProductDetail().getListThumbnail() + "', "
+            + this.getProductDetail().getTotalRating()
+            + ");" + "\r\n\r\n";
     return sql;
   }
 

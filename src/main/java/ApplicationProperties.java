@@ -1,5 +1,3 @@
-package com.higgsup.crawler;
-
 public class ApplicationProperties {
 
   /*Dynamic Config*/

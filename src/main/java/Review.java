@@ -1,4 +1,3 @@
-package com.higgsup.crawler;
 
 import java.util.Random;
 
